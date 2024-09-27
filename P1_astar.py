@@ -5,6 +5,7 @@ from utils import plot_line_segments
 
 class AStar(object):
     """Represents a motion planning problem to be solved using A*"""
+    # adding a comment to test out committing and pushing on github
 
     def __init__(self, statespace_lo, statespace_hi, x_init, x_goal, occupancy, resolution=1):
         self.statespace_lo = statespace_lo         # state space lower bound (e.g., [-5, -5])
