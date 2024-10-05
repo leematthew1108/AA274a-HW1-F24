@@ -5,7 +5,6 @@ from utils import plot_line_segments
 
 class AStar(object):
     """Represents a motion planning problem to be solved using A*"""
-    # adding a comment to test out committing and pushing on github
 
     def __init__(self, statespace_lo, statespace_hi, x_init, x_goal, occupancy, resolution=1):
         self.statespace_lo = statespace_lo         # state space lower bound (e.g., [-5, -5])
@@ -41,7 +40,7 @@ class AStar(object):
               useful here
         """
         ########## Code starts here ##########
-        raise NotImplementedError("is_free not implemented")
+        return self.occupancy.is_free(x)
         ########## Code ends here ##########
 
     def distance(self, x1, x2):
@@ -56,7 +55,7 @@ class AStar(object):
         HINT: This should take one line. Tuples can be converted to numpy arrays using np.array().
         """
         ########## Code starts here ##########
-        raise NotImplementedError("distance not implemented")
+        return np.linalg.norm(np.array(x2) - np.array(x1))
         ########## Code ends here ##########
 
     def snap_to_grid(self, x):
@@ -92,7 +91,26 @@ class AStar(object):
         """
         neighbors = []
         ########## Code starts here ##########
-        raise NotImplementedError("get_neighbors not implemented")
+        # Define the 8 possible moves (up, down, left, right, diagonals)
+        possible_moves = [
+            (0, self.resolution), # up
+            (0, -self.resolution), # down
+            (-self.resolution, 0), # left
+            (self.resolution, 0), # right
+            (self.resolution, self.resolution), # diagonal up and right
+            (-self.resolution, self.resolution), # diagonal up and left
+            (self.resolution, -self.resolution), # diagonal down and right
+            (-self.resolution, -self.resolution) # diagonal down and left
+        ]
+
+        for moves in possible_moves:
+            neighbor = (x[0] + moves[0], x[1] + moves[1])
+            neighbor = self.snap_to_grid(neighbor)
+            if (self.statespace_lo[0] <= neighbor[0] <= self.statespace_high[0] and 
+                self.statespace_lo[1] <= neighbor[1] <= self.statespace_high[1]):
+                if (self.is_free(neighbor)):
+                    neighbors.append(neighbor)
+
         ########## Code ends here ##########
         return neighbors
 
