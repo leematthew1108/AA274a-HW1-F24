@@ -106,8 +106,8 @@ class AStar(object):
         for moves in possible_moves:
             neighbor = (x[0] + moves[0], x[1] + moves[1])
             neighbor = self.snap_to_grid(neighbor)
-            if (self.statespace_lo[0] <= neighbor[0] <= self.statespace_high[0] and 
-                self.statespace_lo[1] <= neighbor[1] <= self.statespace_high[1]):
+            if (self.statespace_lo[0] <= neighbor[0] <= self.statespace_hi[0] and 
+                self.statespace_lo[1] <= neighbor[1] <= self.statespace_hi[1]):
                 if (self.is_free(neighbor)):
                     neighbors.append(neighbor)
 
@@ -151,6 +151,33 @@ class AStar(object):
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.03), fancybox=True, ncol=3)
 
         plt.axis([0, self.occupancy.width, 0, self.occupancy.height])
+
+    # Alternative plot path function that also plots the smoothed path
+    def plot_paths(self, fig_num=0, show_init_label=True, smoothed_path=None):
+        """Plots the path found in self.path and the obstacles. If a smoothed path is provided, it will also be plotted."""
+        if not self.path:
+            return
+
+        self.occupancy.plot(fig_num)
+
+        solution_path = np.asarray(self.path)
+        plt.plot(solution_path[:, 0], solution_path[:, 1], color="green", linewidth=2, label="A* solution path", zorder=10)
+        plt.scatter([self.x_init[0], self.x_goal[0]], [self.x_init[1], self.x_goal[1]], color="green", s=30, zorder=10)
+        if show_init_label:
+            plt.annotate(r"$x_{init}$", np.array(self.x_init) + np.array([.2, .2]), fontsize=16)
+        plt.annotate(r"$x_{goal}$", np.array(self.x_goal) + np.array([.2, .2]), fontsize=16)
+
+        # Plot the smoothed path if provided
+        if smoothed_path is not None:
+            plt.plot(smoothed_path[:, 0], smoothed_path[:, 1], color="red", linewidth=2, label="Smoothed Path", zorder=10)
+
+        plt.legend()
+        plt.axis([0, self.occupancy.width, 0, self.occupancy.height])
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Path Smoothing')
+        plt.grid()
+        plt.show()
 
     def plot_tree(self, point_size=15):
         plot_line_segments([(x, self.came_from[x]) for x in self.open_set if x != self.x_init], linewidth=1, color="blue", alpha=0.2)
