@@ -27,6 +27,7 @@ class RRT(object):
         """
         raise NotImplementedError("is_free_motion must be overriden by a subclass of RRT")
 
+
     def find_nearest(self, V, x):
         """
         Given a list of states V and a query state x, returns the index (row)
@@ -106,6 +107,30 @@ class RRT(object):
         #   - the order in which you pass in arguments to steer_towards and is_free_motion is important
 
         ########## Code starts here ##########
+        for k in range(1, max_iters + 1):
+            x_rand = np.random.uniform(0,1)
+            if x_rand < goal_bias:
+                x_rand = self.x_goal
+            else:
+                x_rand = np.random.uniform(self.statespace_lo, self.statespace_hi)
+            
+            x_near_idx = self.find_nearest(V[:n], x_rand)
+            x_near = V[x_near_idx]
+            x_new = self.steer_towards(x_near, x_rand, eps)
+
+            if self.is_free_motion(self.obstacles, x_near, x_new):
+                V[n] = x_new
+                P[n] = x_near_idx
+                if np.array_equal(x_new, self.x_goal):
+                    success = True
+                    self.path = []
+                    current = n
+                    while current != -1:
+                        self.path.append(V[current])
+                        current = P[current]
+                    self.path = self.path[::-1]  # reverse the path
+                    break
+                n += 1
 
         ########## Code ends here ##########
 
@@ -144,7 +169,14 @@ class RRT(object):
             None, but should modify self.path
         """
         ########## Code starts here ##########
-
+        success = False
+        while not success:
+            success = True
+            for i in range(1, len(self.path) - 1):
+                if self.is_free_motion(self.obstacles, self.path[i-1], self.path[i+1]):
+                    self.path.pop(i)
+                    success = False
+                    break
         ########## Code ends here ##########
 
 class GeometricRRT(RRT):
@@ -156,18 +188,19 @@ class GeometricRRT(RRT):
     def find_nearest(self, V, x):
         # Consult function specification in parent (RRT) class.
         ########## Code starts here ##########
-        # Hint: This should take 1-3 line.
-
+        nearest_idx = np.argmin(np.linalg.norm(V - x, axis=1))
+        return nearest_idx
         ########## Code ends here ##########
-        pass
 
     def steer_towards(self, x1, x2, eps):
         # Consult function specification in parent (RRT) class.
         ########## Code starts here ##########
         # Hint: This should take 1-4 line.
-
+        distance = np.linalg.norm(x2 - x1)
+        if distance < eps:
+            return x2
+        return x1 + eps * (x2 - x1) / distance
         ########## Code ends here ##########
-        pass
 
     def is_free_motion(self, obstacles, x1, x2):
         motion = np.array([x1, x2])
